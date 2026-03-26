@@ -5,6 +5,7 @@ import FileUpload from './components/FileUpload'
 import Filters from './components/Filters'
 import KpiCards from './components/KpiCards'
 import LossRatioChart from './components/LossRatioChart'
+import SPRatioTrendChart from './components/SPRatioTrendChart'
 import SegmentationChart from './components/SegmentationChart'
 import type { DashboardData, SegmentDimension } from './types'
 import { parseXlsx } from './utils/parseXlsx'
@@ -80,6 +81,10 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <LossRatioChart data={spByYear} />
           <SegmentationChart data={segmentData} dimension={dimension} />
+        </div>
+
+        <div className="mb-6">
+          <SPRatioTrendChart data={spByYear} />
         </div>
 
         <ClaimsTable data={data} yearFilter={yearFilter} />
