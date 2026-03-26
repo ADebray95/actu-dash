@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ClaimsTable from './components/ClaimsTable'
+import FeedbackModal from './components/FeedbackModal'
 import FileUpload from './components/FileUpload'
 import Filters from './components/Filters'
 import KpiCards from './components/KpiCards'
@@ -19,6 +20,7 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [yearFilter, setYearFilter] = useState<number[]>([])
   const [dimension, setDimension] = useState<SegmentDimension>('province')
+  const [showFeedback, setShowFeedback] = useState(false)
 
   function handleLoad(buffer: ArrayBuffer) {
     try {
@@ -47,13 +49,22 @@ export default function App() {
           <h1 className="text-white font-bold text-xl">📊 Actuary Dashboard</h1>
           <p className="text-slate-400 text-sm">Motor insurance portfolio — fabricated data</p>
         </div>
-        <button
-          className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium transition-colors"
-          onClick={() => { setData(null); setLoadError(null) }}
-        >
-          ↩ Load new file
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium transition-colors"
+            onClick={() => setShowFeedback(true)}
+          >
+            + Report / Request
+          </button>
+          <button
+            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium transition-colors"
+            onClick={() => { setData(null); setLoadError(null) }}
+          >
+            ↩ Load new file
+          </button>
+        </div>
       </header>
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
       <main className="max-w-7xl mx-auto px-6 py-6">
         <KpiCards kpis={kpis} />
