@@ -4,7 +4,6 @@ import FeedbackModal from './components/FeedbackModal'
 import FileUpload from './components/FileUpload'
 import Filters from './components/Filters'
 import KpiCards from './components/KpiCards'
-import LeaversChart from './components/LeaversChart'
 import LossRatioChart from './components/LossRatioChart'
 import SPRatioTrendChart from './components/SPRatioTrendChart'
 import SegmentationChart from './components/SegmentationChart'
@@ -13,7 +12,6 @@ import { parseXlsx } from './utils/parseXlsx'
 import {
   availableYears,
   computeKPIs,
-  computeLeaversByYear,
   computeSPByYear,
   groupByDimension,
 } from './utils/metrics'
@@ -44,7 +42,6 @@ export default function App() {
   const kpis = computeKPIs(data, yearFilter)
   const spByYear = computeSPByYear(data, yearFilter)
   const segmentData = groupByDimension(data, dimension, yearFilter)
-  const leaversData = computeLeaversByYear(data, yearFilter)
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200">
@@ -88,10 +85,6 @@ export default function App() {
 
         <div className="mb-6">
           <SPRatioTrendChart data={spByYear} />
-        </div>
-
-        <div className="mb-6">
-          <LeaversChart data={leaversData} />
         </div>
 
         <ClaimsTable data={data} yearFilter={yearFilter} />
