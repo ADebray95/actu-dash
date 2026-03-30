@@ -3,7 +3,6 @@ import type {
   DashboardData,
   InsuredYear,
   KPIs,
-  LeaverMetrics,
   SegmentDimension,
   SegmentMetrics,
   YearMetrics,
@@ -85,78 +84,6 @@ export function groupByDimension(
     .map(([label, premium]) => {
       const incurred = incurredByLabel.get(label) ?? 0
       return { label, premium, incurred, spRatio: premium > 0 ? incurred / premium : 0 }
-    })
-}
-
-export function computeLeaversByYear(
-  data: DashboardData,
-  yearFilter: number[],
-): LeaverMetrics[] {
-  const years = [...new Set(data.insuredYears.map((r) => r.year))].sort()
-
-  const insuredByYear = new Map<number, Set<string>>()
-  for (const row of data.insuredYears) {
-    if (!insuredByYear.has(row.year)) insuredByYear.set(row.year, new Set())
-    insuredByYear.get(row.year)!.add(row.insured_id)
-  }
-
-  const claimsByIdYear = new Map<string, number>()
-  for (const c of data.claims) {
-    const key = `${c.insured_id}__${claimYear(c)}`
-    claimsByIdYear.set(key, (claimsByIdYear.get(key) ?? 0) + c.total_incurred)
-  }
-
-  const premiumByIdYear = new Map<string, number>()
-  for (const row of data.insuredYears) {
-    premiumByIdYear.set(`${row.insured_id}__${row.year}`, row.premium_paid)
-  }
-
-  const filtered = yearFilter.length > 0
-    ? years.filter((y) => yearFilter.includes(y))
-    : years
-
-  const lastYear = years[years.length - 1]
-
-  return filtered
-    .filter((y) => y !== lastYear)
-    .map((year) => {
-      const nextYearIds = insuredByYear.get(year + 1) ?? new Set()
-      const currentIds = insuredByYear.get(year)!
-
-      let leaverPremium = 0
-      let leaverIncurred = 0
-      let leaverCount = 0
-      let stayerPremium = 0
-      let stayerIncurred = 0
-      let stayerCount = 0
-
-      for (const id of currentIds) {
-        const key = `${id}__${year}`
-        const premium = premiumByIdYear.get(key) ?? 0
-        const incurred = claimsByIdYear.get(key) ?? 0
-
-        if (nextYearIds.has(id)) {
-          stayerCount++
-          stayerPremium += premium
-          stayerIncurred += incurred
-        } else {
-          leaverCount++
-          leaverPremium += premium
-          leaverIncurred += incurred
-        }
-      }
-
-      return {
-        year,
-        leaverCount,
-        stayerCount,
-        leaverSpRatio: leaverPremium > 0
-          ? leaverIncurred / leaverPremium
-          : 0,
-        stayerSpRatio: stayerPremium > 0
-          ? stayerIncurred / stayerPremium
-          : 0,
-      }
     })
 }
 

@@ -60,14 +60,6 @@ export interface SegmentMetrics {
   spRatio: number
 }
 
-export interface LeaverMetrics {
-  year: number
-  leaverCount: number
-  stayerCount: number
-  leaverSpRatio: number
-  stayerSpRatio: number
-}
-
 export type SegmentDimension =
   | 'province'
   | 'gender'
