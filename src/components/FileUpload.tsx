@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import FeedbackModal from './FeedbackModal'
 
 interface FileUploadProps {
   onLoad: (buffer: ArrayBuffer) => void
@@ -8,6 +9,7 @@ interface FileUploadProps {
 export default function FileUpload({ onLoad, error }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
   function handleFile(file: File) {
     file.arrayBuffer().then(onLoad)
@@ -66,7 +68,15 @@ export default function FileUpload({ onLoad, error }: FileUploadProps) {
             {error}
           </div>
         )}
+
+        <button
+          className="mt-6 px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-medium transition-colors"
+          onClick={() => setShowFeedback(true)}
+        >
+          + Report / Request
+        </button>
       </div>
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
     </div>
   )
 }
