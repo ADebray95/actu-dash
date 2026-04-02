@@ -3,6 +3,7 @@ import type {
   DashboardData,
   InsuredYear,
   KPIs,
+  LeaverYearMetrics,
   SegmentDimension,
   SegmentMetrics,
   YearMetrics,
@@ -84,6 +85,63 @@ export function groupByDimension(
     .map(([label, premium]) => {
       const incurred = incurredByLabel.get(label) ?? 0
       return { label, premium, incurred, spRatio: premium > 0 ? incurred / premium : 0 }
+    })
+}
+
+/**
+ * For each year (except the last), splits insured into leavers (not in next year)
+ * and stayers (present in next year) and computes the S/P ratio for each group.
+ * The last year is excluded because leaver/stayer status cannot be determined without
+ * a subsequent year.
+ */
+export function computeSPByLeaverStatus(
+  data: DashboardData,
+  yearFilter: number[],
+): LeaverYearMetrics[] {
+  const allYears = [...new Set(data.insuredYears.map((r) => r.year))].sort()
+  const displayYears = yearFilter.length > 0 ? allYears.filter((y) => yearFilter.includes(y)) : allYears
+
+  // Build insured_id sets per year (using all years, not filtered, for leaver detection)
+  const idsByYear = new Map<number, Set<string>>()
+  for (const row of data.insuredYears) {
+    if (!idsByYear.has(row.year)) idsByYear.set(row.year, new Set())
+    idsByYear.get(row.year)!.add(row.insured_id)
+  }
+
+  // Build incurred totals per insured_id + year
+  const incurredByKey = new Map<string, number>()
+  for (const claim of data.claims) {
+    const key = `${claim.insured_id}__${claimYear(claim)}`
+    incurredByKey.set(key, (incurredByKey.get(key) ?? 0) + claim.total_incurred)
+  }
+
+  return displayYears
+    .filter((year) => idsByYear.has(year + 1)) // exclude last year
+    .map((year) => {
+      const nextYearIds = idsByYear.get(year + 1)!
+      const yearRows = data.insuredYears.filter((r) => r.year === year)
+
+      let leaverPremium = 0, leaverIncurred = 0
+      let stayerPremium = 0, stayerIncurred = 0
+
+      for (const row of yearRows) {
+        const incurred = incurredByKey.get(`${row.insured_id}__${year}`) ?? 0
+        if (nextYearIds.has(row.insured_id)) {
+          stayerPremium += row.premium_paid
+          stayerIncurred += incurred
+        } else {
+          leaverPremium += row.premium_paid
+          leaverIncurred += incurred
+        }
+      }
+
+      return {
+        year,
+        leaverSP: leaverPremium > 0 ? leaverIncurred / leaverPremium : null,
+        stayerSP: stayerPremium > 0 ? stayerIncurred / stayerPremium : null,
+        leaverPremium,
+        stayerPremium,
+      }
     })
 }
 
